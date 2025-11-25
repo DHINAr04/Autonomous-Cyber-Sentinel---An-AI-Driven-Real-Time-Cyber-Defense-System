@@ -1,0 +1,2 @@
+# This directory stores trained ML models
+# Train a model using: python scripts/train_model.py

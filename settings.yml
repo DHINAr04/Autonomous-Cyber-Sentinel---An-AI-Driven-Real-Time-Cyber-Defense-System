@@ -1,0 +1,65 @@
+# Autonomous Cyber Sentinel Configuration
+
+# Event Bus
+bus: memory
+redis_url: redis://localhost:6379/0
+
+# Database
+sentinel_db: sqlite:///sentinel.db
+
+# Network Capture
+live_capture: false
+capture_iface: null
+
+# Threat Intelligence
+vt_api_key: ""
+abuseipdb_api_key: ""
+otx_api_key: ""
+
+# Model
+model_path: ""
+
+# Operational Mode
+offline_mode: true
+
+# Severity Thresholds
+severity_thresholds:
+  high: 0.8
+  medium: 0.5
+  low: 0.0
+
+# Score Weights for Heuristic Model
+score_weights:
+  bytes: 0.6
+  pkts: 0.3
+  iat_inv: 0.1
+
+# Decision Matrix: severity -> risk/confidence -> action
+decision_matrix:
+  low:
+    risk:
+      high: redirect_to_honeypot
+      medium: log_only
+      low: log_only
+    confidence:
+      high: redirect_to_honeypot
+      medium: log_only
+      low: log_only
+  medium:
+    risk:
+      high: isolate_container
+      medium: redirect_to_honeypot
+      low: log_only
+    confidence:
+      high: isolate_container
+      medium: redirect_to_honeypot
+      low: log_only
+  high:
+    risk:
+      high: isolate_container
+      medium: block_ip
+      low: rate_limit
+    confidence:
+      high: isolate_container
+      medium: block_ip
+      low: rate_limit

@@ -1,0 +1,119 @@
+version: "3.8"
+
+services:
+  # Redis for event bus and caching
+  redis:
+    image: redis:7-alpine
+    container_name: sentinel-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - lan
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # Main Sentinel Dashboard & API
+  sentinel:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sentinel-dashboard
+    ports:
+      - "8000:8000"
+    environment:
+      - BUS=redis
+      - REDIS_URL=redis://redis:6379/0
+      - SENTINEL_DB=sqlite:///data/sentinel.db
+      - OFFLINE_MODE=1
+      - LIVE_CAPTURE=0
+    volumes:
+      - ./data:/app/data
+      - ./settings.yml:/app/settings.yml
+    networks:
+      - lan
+    depends_on:
+      redis:
+        condition: service_healthy
+    command: ["python", "-m", "uvicorn", "sentinel.dashboard.app:app", "--host", "0.0.0.0", "--port", "8000"]
+
+  # Simulated Application Server
+  app1:
+    image: nginx:alpine
+    container_name: sim-app1
+    networks:
+      - lan
+    labels:
+      sentinel.monitor: "true"
+      sentinel.type: "application"
+
+  # Simulated Database Server
+  db1:
+    image: postgres:16-alpine
+    container_name: sim-db1
+    environment:
+      - POSTGRES_PASSWORD=testpass
+      - POSTGRES_DB=testdb
+    networks:
+      - lan
+    labels:
+      sentinel.monitor: "true"
+      sentinel.type: "database"
+
+  # Simulated Web Server
+  web1:
+    image: httpd:alpine
+    container_name: sim-web1
+    networks:
+      - lan
+      - honeypot
+    labels:
+      sentinel.monitor: "true"
+      sentinel.type: "web"
+
+  # Honeypot Service
+  honeypot:
+    image: alpine:3.19
+    container_name: sentinel-honeypot
+    command: ["sh", "-c", "while true; do nc -l -p 8080 -e /bin/sh; done"]
+    networks:
+      - honeypot
+    labels:
+      sentinel.type: "honeypot"
+
+  # Traffic Generator for Testing
+  traffic-gen:
+    image: alpine:3.19
+    container_name: sentinel-traffic-gen
+    command: 
+      - sh
+      - -c
+      - |
+        apk add --no-cache curl
+        while true; do
+          curl -s http://app1 > /dev/null 2>&1 || true
+          curl -s http://web1 > /dev/null 2>&1 || true
+          sleep 2
+        done
+    networks:
+      - lan
+    depends_on:
+      - app1
+      - web1
+
+networks:
+  lan:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+  honeypot:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.21.0.0/16
+
+volumes:
+  sentinel-data:
