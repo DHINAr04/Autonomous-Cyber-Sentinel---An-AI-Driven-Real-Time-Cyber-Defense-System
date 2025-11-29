@@ -34,4 +34,10 @@ elasticsearch>=8.11.0  # For Elasticsearch/OpenSearch export
 
 # Zero-Trust
 cryptography>=41.0.0  # For mTLS certificate handling
+
+# Threat Prediction
+prophet>=1.1.5  # For time series forecasting (optional)
+
+# Blockchain (optional)
+web3>=6.11.0  # For Ethereum integration (optional)
 shap==0.45.0
