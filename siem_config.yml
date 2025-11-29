@@ -1,0 +1,32 @@
+# SIEM Integration Configuration
+
+# Elasticsearch / OpenSearch
+elasticsearch:
+  enabled: false  # Set to true to enable
+  hosts:
+    - http://localhost:9200
+  index_prefix: sentinel-alerts
+  username: elastic  # Optional
+  password: changeme  # Optional
+
+# Splunk HTTP Event Collector
+splunk:
+  enabled: false  # Set to true to enable
+  hec_url: https://splunk.example.com:8088
+  hec_token: your-hec-token-here
+  index: sentinel
+  verify_ssl: false  # For development
+
+# CEF/Syslog (Universal SIEM compatibility)
+cef:
+  enabled: false  # Set to true to enable
+  syslog_host: localhost
+  syslog_port: 514
+  protocol: udp  # udp or tcp
+
+# Export settings
+export:
+  batch_size: 100  # Bulk export batch size
+  retry_attempts: 3
+  retry_delay: 5  # seconds
+  async_export: true  # Export in background

@@ -24,4 +24,14 @@ pillow==11.0.0
 aiosmtplib==3.0.2
 shap==0.45.0  # For explainable AI
 docker==7.0.0  # For Docker API integration
+
+# Deep Learning (Optional - for LSTM/Transformer detection)
+tensorflow>=2.15.0  # For LSTM models
+torch>=2.1.0  # For Transformer models
+
+# SIEM Integration
+elasticsearch>=8.11.0  # For Elasticsearch/OpenSearch export
+
+# Zero-Trust
+cryptography>=41.0.0  # For mTLS certificate handling
 shap==0.45.0
